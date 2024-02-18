@@ -1,5 +1,11 @@
 {
     "files.associations": {
-        "iostream": "cpp"
-    }
+        "iostream": "cpp",
+        "ostream": "cpp"
+    },
+    "c-cpp-compile-run.cpp-compiler": "g++",
+    "c-cpp-compile-run.cpp-flags": "-Wall -Wextra -g3",
+    "c-cpp-compile-run.c-flags": "-Wall -Wextra -g3",
+    "c-cpp-compile-run.custom-run-prefix": "",
+    "c-cpp-compile-run.run-args": ""
 }

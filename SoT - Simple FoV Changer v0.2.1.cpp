@@ -1,23 +1,45 @@
 #include <Windows.h>
+#include <winuser.h>
 #include <iostream>
+#include <Psapi.h>
 
 using namespace std;
 
-int main() {
-    uintptr_t baseAddress = 0x7FF7F1C50000;   
-    uintptr_t offsets[] = {0x0899B088, 0x40, 0x9B0, 0xC0, 0x20, 0x3E4};
-    DWORD processId;
-    cout << "Enter the PID of SoT: ";
-    cin >> dec >> processId;
+uintptr_t GetBaseAddress(const HANDLE processHandle) {
+    if (processHandle == NULL)
+        return 0;
 
-    HANDLE processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, processId);
+    HMODULE lphModule[1024];
+    DWORD lpcbNeeded = 0;
+
+    if (!EnumProcessModules(processHandle, lphModule, sizeof(lphModule), &lpcbNeeded))
+        return 0;
+
+    return reinterpret_cast<uintptr_t>(lphModule[0]);
+}
+
+int main() {
+    
+    HWND SoTWindowName = FindWindowA(NULL, ("Sea of thieves"));
+    if (SoTWindowName == NULL){
+        cout << "Sea Of Thieves window not found. Please reopen the game!" << endl;
+        return EXIT_FAILURE;
+    }
+
+    DWORD SoTPID;
+    GetWindowThreadProcessId(SoTWindowName, &SoTPID);
+
+    HANDLE processHandle = OpenProcess(PROCESS_ALL_ACCESS, FALSE, SoTPID);
     if (processHandle == NULL) {
         cout << "OpenProcess failed. GetLastError = " << GetLastError() << endl;
         return EXIT_FAILURE;
     }
 
+    uintptr_t baseAddress = GetBaseAddress(processHandle);
+    uintptr_t offsets[] = {0x0899B088, 0x40, 0x9B0, 0xC0, 0x20, 0x3E4};
+
     uintptr_t currentAddress = baseAddress;
-    for (int i = 0; i < sizeof(offsets) / sizeof(offsets[0]); ++i) {
+    for (size_t i = 0; i < sizeof(offsets) / sizeof(offsets[0]); ++i) {
         if (i == 0) {
             currentAddress += offsets[i];
         } else {
